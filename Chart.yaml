@@ -1,5 +1,5 @@
 apiVersion: v2
-name: module-service-mesh
+name: modules-operators
 description: A Helm chart for installing Service Mesh in kubernetes
 
 # A chart can be either an 'application' or a 'library' chart.
