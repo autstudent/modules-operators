@@ -1,6 +1,6 @@
 # modules-operators
 
-Helm Chart to deploy OpenShift Service Mesh.
+Helm Chart to deploy OpenShift Operators.
 
 ## Getting Started
 

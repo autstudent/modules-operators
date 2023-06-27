@@ -6,16 +6,19 @@ catalogSource:
 
 subscriptions:
   jaeger:
+    namespace: openshift-operators
     channel: stable
     installPlanApproval: Manual
     name: jaeger-product
     startingCSV: jaeger-operator.v1.42.0-5
   kiali-ossm:
+    namespace: openshift-operators
     channel: stable
     installPlanApproval: Manual
     name: kiali-ossm
     startingCSV: kiali-operator.v1.65.6
   servicemesh:
+    namespace: openshift-operators
     channel: stable
     installPlanApproval: Manual
     name: servicemeshoperator
