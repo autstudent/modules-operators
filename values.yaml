@@ -20,5 +20,3 @@ subscriptions:
     installPlanApproval: Manual
     name: servicemeshoperator
     startingCSV: servicemeshoperator.v2.4.0
-
-# logging community / grafana community / OCP logging 4.12

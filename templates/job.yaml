@@ -16,7 +16,66 @@ spec:
         - /bin/sh
         - -c
         - |
-          export namespace=openshift-operators
-          export ips=$(oc get ip -n ${namespace} | grep Manual | grep false | awk '{print $1}')
-          for ip in $(echo $ips); do oc -n ${namespace} patch installplan ${ip} -p '{"spec":{"approved":true}}' --type merge; done
+          cat <<EOF > review-installplans.sh
+          "
+          #!/bin/bash
+          ##
+          # Script to auto-approve installplans
+          ##
+          echo "Initiating auto-approve installplans..."
+
+          # Variables
+          OPERATORS="
+{{- range $key, $val := $.Values.subscriptions }}
+{{- if eq $val.installPlanApproval "Manual" }}
+          {{ $val.startingCSV }}
+{{- end }}
+{{- end }}
+          "
+          OPERATORS_NAMESPACE=openshift-operators
+
+          for operator in ${OPERATORS}
+          do
+            echo "Reviewing Operator ${operator}"
+            APPROVED=false
+            while [ "$APPROVED" == 'false' ]
+            do
+              echo "Verifing Operator ${operator} is approved"
+              # Obtaining manual and unapproved installplans
+              installplans=$(oc get installplans -n ${OPERATORS_NAMESPACE} | grep "Manual" | awk '{ print $1 }' )
+              # Review manual and unapproved installplans
+              for ip in ${installplans}
+              do
+                echo "Reviewing installplan ${ip} to find ${operator}"
+                # Obtaining CSVs associated to the installplan
+                csv=$(oc get installplans -n ${OPERATORS_NAMESPACE} ${ip} -o jsonpath='{.spec.clusterServiceVersionNames}' | grep ${operator})
+                # Review CSVs associated to the installplan when it the operator appears
+                if [ ! -z "${csv}" ]
+                then
+                  echo "CSV ${operator} found in an install plan: ${ip}"
+                  # Obtaining installplan status
+                  ip_status=$(oc get installplans -n ${OPERATORS_NAMESPACE} ${ip} -o jsonpath='{.spec.approved}')
+                  # Review CSVs associated to the installplan when it is approved
+                  if [ "${ip_status}" == "true" ]
+                  then
+                    echo "CSV ${operator} found in an approved install plan: ${ip} (CSVs: ${csv})"
+                    APPROVED=true
+                  # Review CSVs associated to the installplan when it is not approved
+                  elif [ "${ip_status}" == "false" ]
+                  then
+                    echo "CSV ${operator} found in an unapproved install plan: ${ip} (CSVs: ${csv})"
+                    echo "Approving install plan: ${ip}..."
+                    oc -n ${OPERATORS_NAMESPACE} patch installplan ${ip} -p '{"spec":{"approved":true}}' --type merge
+                  else
+                    echo "Error obtaining approved status in the installplan ${ip}"
+                    exit 1
+                  fi
+                fi
+                echo "CSV ${operator} not found in an install plan: ${ip}"
+              done
+              sleep 5
+            done
+          done
+          EOF
+          sh review-installplans.sh
       restartPolicy: Never
