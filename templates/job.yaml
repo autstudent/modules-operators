@@ -16,6 +16,10 @@ spec:
           - -c
           - |
             #!/bin/bash
+            OPERATORS=()
+            {{- range $kel, $val := .Values.subscriptions }}
+            OPERATORS+=("{{ $kel }}.{{ $val.namespace }}")
+            {{- end }}
             for OPERATOR in $OPERATORS; do
               echo "Processing operator: $OPERATOR"
               APPROVED=false
@@ -35,10 +39,3 @@ spec:
               echo "Processing complete for operator: $OPERATOR"
             done
             exit 0
-        env:
-        - name: OPERATORS
-          value: |
-            {{- range $key, $val := .Values.subscriptions }}
-            {{- $key }}.{{ $val.namespace }},
-            {{- end }}
-      restartPolicy: Never
