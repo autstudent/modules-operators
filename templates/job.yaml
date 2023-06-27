@@ -3,20 +3,39 @@ kind: Job
 metadata:
   name: approve-install-plans
   namespace: openshift-operators
-#  annotations:
-#    argocd.argoproj.io/hook: PostSync
 spec:
   template:
     spec:
       serviceAccountName: approve-install-plans
+      restartPolicy: Never
       containers:
       - name: ose-cli
         image: registry.redhat.io/openshift4/ose-cli
-        command:
-        - /bin/sh
-        - -c
-        - |
-          export namespace=openshift-operators
-          export ips=$(oc get ip -n ${namespace} | grep Manual | grep false | awk '{print $1}')
-          for ip in $(echo $ips); do oc -n ${namespace} patch installplan ${ip} -p '{"spec":{"approved":true}}' --type merge; done
+        command: ["/bin/bash"]
+        args:
+          - -c
+          - |
+            #!/bin/bash
+            for OPERATOR in $OPERATORS; do
+              echo "Processing operator: $OPERATOR"
+              APPROVED=false
+              while [[ $APPROVED == false ]]; do
+                # Check if the InstallPlan exists
+                if oc get ip -l operators.coreos.com/$OPERATOR >/dev/null 2>&1; then
+                  echo "InstallPlan exists. Making sure it is approved..."
+                  patch installplan -l operators.coreos.com/$OPERATOR -p '{"spec":{"approved":true}}' --type merge
+                  APPROVE=true
+                else
+                  echo "InstallPlan does not exist. Sleeping for 10 seconds..."
+                  sleep 10
+                fi
+              done
+              echo "Processing complete for operator: $OPERATOR"
+            done
+        env:
+        - name: OPERATORS
+          value: |
+            {{- range $key, $val := .Values.subscriptions }}
+            {{- $key }}.{{ $val.namespace }},
+            {{- end }}
       restartPolicy: Never
