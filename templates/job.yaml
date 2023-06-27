@@ -28,7 +28,7 @@ spec:
                 # Check if the InstallPlan exists
                 if oc get ip -l operators.coreos.com/$OPERATOR >/dev/null 2>&1; then
                   echo "InstallPlan exists. Making sure it is approved..."
-                  patch installplan -l operators.coreos.com/$OPERATOR -p '{"spec":{"approved":true}}' --type merge
+                  oc patch installplan $(oc get installplan -l operators.coreos.com/$OPERATOR -o name) -p '{"spec":{"approved":true}}' --type merge
                   APPROVE=true
                 else
                   echo "InstallPlan does not exist. Sleeping for 10 seconds..."
