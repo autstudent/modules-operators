@@ -23,6 +23,5 @@ spec:
         - /bin/sh
         - -c
         - |
-          cat /scripts/auto-approve.sh
           sh /scripts/auto-approve.sh
       restartPolicy: Never
