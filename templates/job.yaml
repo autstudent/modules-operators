@@ -20,6 +20,7 @@ spec:
               echo "Processing operator: $OPERATOR"
               APPROVED=false
               while [[ $APPROVED == false ]]; do
+              
                 # Check if the InstallPlan exists
                 if oc get ip -l operators.coreos.com/$OPERATOR >/dev/null 2>&1; then
                   echo "InstallPlan exists. Making sure it is approved..."
@@ -29,6 +30,7 @@ spec:
                   echo "InstallPlan does not exist. Sleeping for 10 seconds..."
                   sleep 10
                 fi
+                
               done
               echo "Processing complete for operator: $OPERATOR"
             done
