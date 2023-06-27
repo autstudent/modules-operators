@@ -34,7 +34,7 @@ spec:
               done
               echo "Processing complete for operator: $OPERATOR"
             done
-            exit 1
+            exit 0
         env:
         - name: OPERATORS
           value: |
