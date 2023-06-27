@@ -41,13 +41,13 @@ spec:
             do
               echo "Verifing Operator ${operator} is approved"
               # Obtaining manual and unapproved installplans
-              installplans=$(oc get installplans -n ${OPERATORS_NAMESPACE} | grep "Manual" | awk '{ print $1 }' )
+              installplans=$(oc get installplans -n ${OPERATORS_NAMESPACE} | grep -e Manual | awk '{ print $1 }' )
               # Review manual and unapproved installplans
               for ip in ${installplans}
               do
                 echo "Reviewing installplan ${ip} to find ${operator}"
                 # Obtaining CSVs associated to the installplan
-                csv=$(oc get installplans -n ${OPERATORS_NAMESPACE} ${ip} -o jsonpath='{.spec.clusterServiceVersionNames}' | grep ${operator})
+                csv=$(oc get installplans -n ${OPERATORS_NAMESPACE} ${ip} -o jsonpath='{.spec.clusterServiceVersionNames}' | grep -e ${operator})
                 # Review CSVs associated to the installplan when it the operator appears
                 if [ ! -z "${csv}" ]
                 then
