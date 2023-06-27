@@ -59,6 +59,7 @@ data:
           fi
           echo "CSV ${operator} not found in an install plan: ${ip}"
         done
+        echo "Operator ${operator} not found in any installplan. Trying again..."
         sleep 5
       done
     done
